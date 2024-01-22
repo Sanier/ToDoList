@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using ToDoList.DAL.Interfaces;
 using ToDoList.Domain.Entity;
 using ToDoList.Domain.Enum;
+using ToDoList.Domain.Extensions;
 using ToDoList.Domain.Models;
 using ToDoList.Domain.Response;
 using ToDoList.Service.Interfaces;
@@ -64,6 +65,39 @@ namespace ToDoList.Service.Implementations
                 return new BaseResponse<TaskEntity>
                 {
                     Description= $"{ex.Message}",
+                    StatusCode = StatusCode.InternalServerError
+                };
+            }
+        }
+
+        public async Task<IBaseResponse<IEnumerable<TaskModel>>> GetTasks()
+        {
+            try
+            {
+                var tasks = await _taskRepository.GetAll()
+                    .Select(x => new TaskModel()
+                    {
+                        Id = x.Id,
+                        Name = x.Name,
+                        Description = x.Description,
+                        IsDone = x.IsDone == true ? "Готова" : "Не готова",
+                        Priority = x.Priority.GetDisplayName(),
+                        Created = x.Created.ToLongDateString()
+                    })
+                    .ToListAsync();
+
+                return new BaseResponse<IEnumerable<TaskModel>>()
+                {
+                    Data = tasks,
+                    StatusCode = StatusCode.Ok
+                };
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, $"[TaskService.GetTasks]: {ex.Message}");
+                return new BaseResponse<IEnumerable<TaskModel>>()
+                {
+                    Description = $"{ex.Message}",
                     StatusCode = StatusCode.InternalServerError
                 };
             }
