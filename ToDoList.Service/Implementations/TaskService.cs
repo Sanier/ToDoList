@@ -4,6 +4,7 @@ using ToDoList.DAL.Interfaces;
 using ToDoList.Domain.Entity;
 using ToDoList.Domain.Enum;
 using ToDoList.Domain.Extensions;
+using ToDoList.Domain.Filters.Task;
 using ToDoList.Domain.Models;
 using ToDoList.Domain.Response;
 using ToDoList.Service.Interfaces;
@@ -70,11 +71,47 @@ namespace ToDoList.Service.Implementations
             }
         }
 
-        public async Task<IBaseResponse<IEnumerable<TaskModel>>> GetTasks()
+        public async Task<IBaseResponse<bool>> EndTask(long id)
+        {
+            try
+            {
+                var task = await _taskRepository.GetAll().FirstOrDefaultAsync(x => x.Id == id);
+                if (task == null)
+                    return new BaseResponse<bool>()
+                    {
+                        Description = "Задача не найдена",
+                        StatusCode = StatusCode.TaskNotFoundry
+                    };
+
+                task.IsDone = true;
+
+                await _taskRepository.Update(task);
+
+                return new BaseResponse<bool>()
+                {
+                    Description = "Задача завершена",
+                    StatusCode = StatusCode.Ok
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[TaskService.GetTasks]: {ex.Message}");
+                return new BaseResponse<bool>()
+                {
+                    Description = $"{ex.Message}",
+                    StatusCode = StatusCode.InternalServerError
+                };
+            }
+        }
+
+        public async Task<IBaseResponse<IEnumerable<TaskModel>>> GetTasks(TaskFilter filter)
         {
             try
             {
                 var tasks = await _taskRepository.GetAll()
+                    .Where(x => !x.IsDone)
+                    .WhereIf(!string.IsNullOrWhiteSpace(filter.Name), x => x.Name == filter.Name)
+                    .WhereIf(filter.Priority.HasValue, x => x.Priority == filter.Priority)
                     .Select(x => new TaskModel()
                     {
                         Id = x.Id,

@@ -18,6 +18,19 @@
         <button id="createTask" class="btn-primary">Создать</button>
 </form>
 
+<br/>
+<div class="row">
+    <div class="form-group col-md-6">
+        <label class="col-form-label">Название</label>
+        <input name="nameTask" type="text" class="form-control"/>
+    </div>
+    <div class="form-group col-md-6">
+        <label class="col-form-label">Приоритет</label>
+        <select id="prioritiSearch" class="form-control mb-3" asp-items="Html.GetEnumSelectList<Priority>()"></select>
+    </div>
+</div>
+<br/>
+
 <table class="table table-dark table-hover" id="taskTableId">
     <thead>
         <tr>
@@ -36,6 +49,13 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
 
+        const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                confirmButton: "btn btn-success"
+            },
+            buttonsStyling: false
+        });
+
         let dataTable = $('#taskTableId').DataTable({
             info: true,
             serverSide: true,
@@ -45,7 +65,7 @@
             ajax: {
                 url: "@Url.Action("TaskHandler")",
                 method: 'POST',
-                data: null
+                data: model
             },
             columns: [
                 { data: 'name' },
@@ -61,14 +81,62 @@
                 }
             ],
             createdRow: function (nRow, data) {
-                let length = dataTable.columns().header().length - 1;
-                for (let i = 0; i < length; i++) {
-                    $('td', nRow).eq(i).css('cursor', 'pointer');
 
+                let handlerComplete = function() {
+                    swalWithBootstrapButtons.fire({
+                        title: "Вы уверены?",
+                        icon: "warning",
+                        confirmButtonText: "Да",
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                type: 'POST',
+                                url: '@Url.Action("EndTask")',
+                                data: { id: data.id },
+                                success: function (response) {
+                                    Swal.fire({
+                                        title: 'Информация',
+                                        text: response.description,
+                                        icon: 'success',
+                                        confirmButtonText: 'Окей'
+                                    })
+                                    dataTable.draw();
+                                },
+                                error: function (response) {
+                                    Swal.fire({
+                                        title: 'Информация',
+                                        text: response.responseJSON.description,
+                                        icon: 'error',
+                                        confirmButtonText: 'Окей'
+                                    })
+                                }
+                            });
+                        }
+                    });
+                }
+
+                for (let i = 0; i < dataTable.columns().header().length - 1; i++) {
+                    $('td', nRow).eq(i).css('cursor', 'pointer');
                     $('td', nRow).eq(i).on('click', null);
                 }
-                $('td button', nRow).eq(length).on('click', null);
+                $('td button', nRow).on('click', handlerComplete);
             }
+        });
+
+        function model() {
+            return {
+                Name: $('input[name="nameTask"]').val(),
+                Priority: $('#prioritiSearch option:selected').val()
+            }
+        }
+
+        $('input[name="nameTask"]').on('change', function () {
+            dataTable.draw();
+        });
+
+        $('#prioritiSearch').on('change', function () {
+            dataTable.draw();
         });
 
         $('#createTask').on('click', function (e) {

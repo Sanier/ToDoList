@@ -1,4 +1,5 @@
 ﻿using ToDoList.Domain.Entity;
+using ToDoList.Domain.Filters.Task;
 using ToDoList.Domain.Models;
 using ToDoList.Domain.Response;
 
@@ -8,6 +9,8 @@ namespace ToDoList.Service.Interfaces
     {
         Task<IBaseResponse<TaskEntity>> Create(CreateTaskModel model);
 
-        Task<IBaseResponse<IEnumerable<TaskModel>>> GetTasks();
+        Task<IBaseResponse<bool>> EndTask(long id);
+
+        Task<IBaseResponse<IEnumerable<TaskModel>>> GetTasks(TaskFilter filter);
     }
 }
