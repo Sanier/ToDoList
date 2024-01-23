@@ -11,10 +11,10 @@ namespace ToDoList.Domain.Models
         public void Validate()
         {
             if(string.IsNullOrWhiteSpace(Name))
-                throw new ArgumentNullException(Name, "Укажите название задачи");
+                throw new ArgumentNullException(Name, "Specify the name of the task");
 
             if (string.IsNullOrWhiteSpace(Description))
-                throw new ArgumentNullException(Description, "Укажите описание задачи");
+                throw new ArgumentNullException(Description, "Please provide a description of the task");
         }
     }
 }

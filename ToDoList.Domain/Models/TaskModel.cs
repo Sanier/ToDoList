@@ -6,20 +6,19 @@ namespace ToDoList.Domain.Models
     {
         public long Id { get; set; }
 
-        [Display(Name = "Название")]
+        [Display(Name = "Name")]
         public string Name { get; set; }
 
-        [Display(Name = "Готовность")]
+        [Display(Name = "Readiness")]
         public string IsDone { get; set; }
 
-        [Display(Name = "Приоритет")]
+        [Display(Name = "Priority")]
         public string Priority { get; set; }
 
-        [Display(Name = "Описание")]
+        [Display(Name = "Description")]
         public string Description { get; set; }
 
-        [Display(Name = "Дата создания")]
+        [Display(Name = "Data created")]
         public string Created { get; set; }
-
     }
 }

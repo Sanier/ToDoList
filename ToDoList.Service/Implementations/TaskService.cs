@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ToDoList.DAL.Interfaces;
 using ToDoList.Domain.Entity;
@@ -29,14 +28,14 @@ namespace ToDoList.Service.Implementations
             {
                 model.Validate();
 
-                _logger.LogInformation($"Запрос на создание задачи - {model.Name}");
+                _logger.LogInformation($"Request to create a task - {model.Name}");
 
                 var task = await _taskRepository.GetAll()
                     .Where(x => x.Created.Date == DateTime.Today)
                     .FirstOrDefaultAsync(x => x.Name == model.Name);
                 
                 if (task != null)
-                    return OutputProcessing<TaskEntity>("Задача с таким названием уже есть", StatusCode.TaskIsHasAlready);
+                    return OutputProcessing<TaskEntity>("There is already a task with the same name", StatusCode.TaskIsHasAlready);
 
                 task = new TaskEntity()
                 {
@@ -49,9 +48,9 @@ namespace ToDoList.Service.Implementations
 
                 await _taskRepository.Create(task);
 
-                _logger.LogInformation($"Задача создалась: {task.Name} {task.Created}");
+                _logger.LogInformation($"The task has been created: {task.Name} {task.Created}");
                 await _taskRepository.Update(task);
-                return OutputProcessing<TaskEntity>("Задача создалась", StatusCode.Ok);
+                return OutputProcessing<TaskEntity>("The task has been created", StatusCode.Ok);
             }
             catch (Exception ex)
             {
@@ -66,12 +65,12 @@ namespace ToDoList.Service.Implementations
                 var task = await _taskRepository.GetAll().FirstOrDefaultAsync(x => x.Id == id);
                 
                 if (task == null)
-                    return OutputProcessing<bool>("Задача не найдена", StatusCode.TaskNotFoundry);
+                    return OutputProcessing<bool>("Task not found", StatusCode.TaskNotFoundry);
 
                 task.IsDone = true;
 
                 await _taskRepository.Update(task);
-                return OutputProcessing<bool>("Задача завершена", StatusCode.Ok);
+                return OutputProcessing<bool>("Task completed", StatusCode.Ok);
             }
             catch (Exception ex)
             {
@@ -114,7 +113,7 @@ namespace ToDoList.Service.Implementations
                         Id = x.Id,
                         Name = x.Name,
                         Description = x.Description,
-                        IsDone = x.IsDone == true ? "Готова" : "Не готова",
+                        IsDone = x.IsDone == true ? "Ready" : "Not ready",
                         Priority = x.Priority.GetDisplayName(),
                         Created = x.Created.ToLongDateString()
                     })

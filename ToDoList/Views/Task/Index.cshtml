@@ -3,16 +3,16 @@
     ViewData["Title"] = "Home Page";
 }
 
-<h4 class="mb-3 text-muted">Создание задачи</h4>
+<h4 class="mb-3 text-muted">Create a task</h4>
 <form id="createTaskForm">
     <div class="mb-3">
-        <label class="form-label">Название задачи</label>
+        <label class="form-label">Task name</label>
         <input name="name" type="text" class="form-control"/>
     </div>
-    <label class="form-label">Приоритет задачи</label>
+    <label class="form-label">Task priority</label>
     <select name="priority" class="form-select mb-3" asp-items="Html.GetEnumSelectList<Priority>()"></select>
     <div class="mb-3">
-        <label class="form-label">Описание задачи</label>
+        <label class="form-label">Description of the task</label>
         <textarea name="description" type="text" class="form-control" rows="3"></textarea>
     </div>
     <button id="createTask" class="btn-primary">Создать</button>
@@ -21,11 +21,11 @@
 <br/>
 <div class="row">
     <div class="form-group col-md-6">
-        <label class="col-form-label">Название</label>
+        <label class="col-form-label">Name</label>
         <input name="nameTask" type="text" class="form-control"/>
     </div>
     <div class="form-group col-md-6">
-        <label class="col-form-label">Приоритет</label>
+        <label class="col-form-label">Priority</label>
         <select id="prioritiSearch" class="form-control mb-3" asp-items="Html.GetEnumSelectList<Priority>()"></select>
     </div>
 </div>
@@ -34,11 +34,11 @@
 <table class="table table-dark table-hover" id="taskTableId">
     <thead>
         <tr>
-            <th>Название</th>
-            <th>Сложность</th>
-            <th>Описание</th>
-            <th>Готовность</th>
-            <th>Действие</th>
+            <th>Name</th>
+            <th>Priority</th>
+            <th>Description</th>
+            <th>Is Done</th>
+            <th>Action</th>
         </tr>
     </thead>
 </table>
@@ -85,9 +85,9 @@
             createdRow: function (nRow, data) {
                 let handlerComplete = function() {
                     swalWithBootstrapButtons.fire({
-                        title: "Вы уверены?",
+                        title: "Are you sure?",
                         icon: "warning",
-                        confirmButtonText: "Да",
+                        confirmButtonText: "Yes",
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
@@ -97,19 +97,19 @@
                                 data: { id: data.id },
                                 success: function (response) {
                                     Swal.fire({
-                                        title: 'Информация',
+                                        title: 'Information',
                                         text: response.description,
                                         icon: 'success',
-                                        confirmButtonText: 'Окей'
+                                        confirmButtonText: 'Ok'
                                     })
                                     dataTable.draw();
                                 },
                                 error: function (response) {
                                     Swal.fire({
-                                        title: 'Информация',
+                                        title: 'Information',
                                         text: response.responseJSON.description,
                                         icon: 'error',
-                                        confirmButtonText: 'Окей'
+                                        confirmButtonText: 'Ok'
                                     })
                                 }
                             });
@@ -147,20 +147,20 @@
                 data: $('#createTaskForm').serialize(),
                 success: function (response) {
                     Swal.fire({
-                        title: 'Информация',
+                        title: 'Information',
                         text: response.description,
                         icon: 'success',
-                        confirmButtonText: 'Окей'
+                        confirmButtonText: 'Ok'
                     })
                     dataTable.draw();
                     $('#createTaskForm')[0].reset();
                 },
                 error: function (response) {
                     Swal.fire({
-                        title: 'Информация',
+                        title: 'Information',
                         text: response.responseJSON.description,
                         icon: 'error',
-                        confirmButtonText: 'Окей'
+                        confirmButtonText: 'Ok'
                     })
                 }
             })
