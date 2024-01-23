@@ -15,7 +15,7 @@
         <label class="form-label">Description of the task</label>
         <textarea name="description" type="text" class="form-control" rows="3"></textarea>
     </div>
-    <button id="createTask" class="btn-primary">Создать</button>
+    <button id="createTask" class="btn-primary">Create</button>
 </form>
 
 <br/>
@@ -26,7 +26,7 @@
     </div>
     <div class="form-group col-md-6">
         <label class="col-form-label">Priority</label>
-        <select id="prioritiSearch" class="form-control mb-3" asp-items="Html.GetEnumSelectList<Priority>()"></select>
+        <select id="prioritySearch" class="form-control mb-3" asp-items="Html.GetEnumSelectList<Priority>()"></select>
     </div>
 </div>
 <br/>
@@ -78,7 +78,7 @@
                     data: null,
                     sortable: false,
                     render: function (data, type) {
-                        return '<button class="btn btn-success btn-sm center-block">Выполнить</button>'
+                        return '<button class="btn btn-success btn-sm center-block">Execute</button>'
                     }
                 }
             ],
@@ -127,7 +127,7 @@
         function model() {
             return {
                 Name: $('input[name="nameTask"]').val(),
-                Priority: $('#prioritiSearch option:selected').val()
+                Priority: $('#prioritySearch option:selected').val()
             }
         }
 
@@ -135,7 +135,7 @@
             dataTable.draw();
         });
 
-        $('#prioritiSearch').on('change', function () {
+        $('#prioritySearch').on('change', function () {
             dataTable.draw();
         });
 

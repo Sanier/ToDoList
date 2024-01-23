@@ -114,7 +114,7 @@ namespace ToDoList.Service.Implementations
                         Name = x.Name,
                         Description = x.Description,
                         IsDone = x.IsDone == true ? "Ready" : "Not ready",
-                        Priority = x.Priority.GetDisplayName(),
+                        Priority = x.Priority.ToString(),
                         Created = x.Created.ToLongDateString()
                     })
                     .ToListAsync();

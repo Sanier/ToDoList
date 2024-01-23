@@ -9,7 +9,7 @@ namespace ToDoList.Domain.Models
         [Display(Name = "Name")]
         public string Name { get; set; }
 
-        [Display(Name = "Readiness")]
+        [Display(Name = "IsDone")]
         public string IsDone { get; set; }
 
         [Display(Name = "Priority")]
