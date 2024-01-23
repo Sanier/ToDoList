@@ -11,11 +11,11 @@
     </div>
     <label class="form-label">Приоритет задачи</label>
     <select name="priority" class="form-select mb-3" asp-items="Html.GetEnumSelectList<Priority>()"></select>
-        <div class="mb-3">
-            <label class="form-label">Описание задачи</label>
+    <div class="mb-3">
+        <label class="form-label">Описание задачи</label>
         <textarea name="description" type="text" class="form-control" rows="3"></textarea>
-        </div>
-        <button id="createTask" class="btn-primary">Создать</button>
+    </div>
+    <button id="createTask" class="btn-primary">Создать</button>
 </form>
 
 <br/>
@@ -57,13 +57,15 @@
         });
 
         let dataTable = $('#taskTableId').DataTable({
-            info: true,
+            info: false,
             serverSide: true,
             searching: false,
-            paging: false,
             sorting: false,
+            paging: false,
+            scrollCollapse: true,
+            scrollY: '35vh',
             ajax: {
-                url: "@Url.Action("TaskHandler")",
+                url: '@Url.Action("TaskHandler")',
                 method: 'POST',
                 data: model
             },
@@ -81,7 +83,6 @@
                 }
             ],
             createdRow: function (nRow, data) {
-
                 let handlerComplete = function() {
                     swalWithBootstrapButtons.fire({
                         title: "Вы уверены?",
@@ -115,7 +116,6 @@
                         }
                     });
                 }
-
                 for (let i = 0; i < dataTable.columns().header().length - 1; i++) {
                     $('td', nRow).eq(i).css('cursor', 'pointer');
                     $('td', nRow).eq(i).on('click', null);
@@ -152,6 +152,8 @@
                         icon: 'success',
                         confirmButtonText: 'Окей'
                     })
+                    dataTable.draw();
+                    $('#createTaskForm')[0].reset();
                 },
                 error: function (response) {
                     Swal.fire({

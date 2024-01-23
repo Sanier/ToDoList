@@ -36,17 +36,7 @@
                     <span class="text-muted">Выполненные задачи</span>
                     <span class="badge badge-secondary badge-pill text-muted" id="countOfCompletedTasks"></span>
                 </h4>
-                <ul class="list-group mb-3" id="completedListTasks"></ul>
-                <form>
-                    <div class="card col-md-12">
-                        <button type="submit" class="btn btn-secondary">Закончить день</button>
-                    </div>
-                </form>
-                <br />
-                <div class="form-group">
-                    <label>Заметки для себя</label>
-                    <textarea class="form-control" rows="3"></textarea>
-                </div>
+                <ul class="list-group mb-3" id="completedListTasks" style="max-height: 500px; overflow-y: auto;"></ul>
             </div>
             <div class="col-md-8 order-md-1">
                 @RenderBody()
@@ -57,6 +47,31 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetCompletedTasks", "Task")',
+                success: function (data) {
+                    const ulElement = $('#completedListTasks');
+                    for (let i = 0; i < data.data.length; i++) {
+                        const task = data.data[i];
+                        ulElement.append(`
+                            <li class="list-group-item d-flex justify-content-between lh-condensed" style="background-color: #affabf">
+                                <div>
+                                    <h6 class="my-0">Название: ${task.name}</h6>
+                                    <small class="text-muted">Описание: ${task.description}</small>
+                                </div>
+                            </li>
+                        `)
+                    }
+                    $('#countOfCompletedTasks').text(data.data.length);
+                }
+            })
+        })
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

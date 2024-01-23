@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ToDoList.DAL.Interfaces;
 using ToDoList.Domain.Entity;
@@ -33,14 +34,9 @@ namespace ToDoList.Service.Implementations
                 var task = await _taskRepository.GetAll()
                     .Where(x => x.Created.Date == DateTime.Today)
                     .FirstOrDefaultAsync(x => x.Name == model.Name);
+                
                 if (task != null)
-                {
-                    return new BaseResponse<TaskEntity>()
-                    {
-                        Description = "Задача с таким названием уже есть",
-                        StatusCode = StatusCode.TaskIsHasAlready
-                    };
-                }
+                    return OutputProcessing<TaskEntity>("Задача с таким названием уже есть", StatusCode.TaskIsHasAlready);
 
                 task = new TaskEntity()
                 {
@@ -54,20 +50,12 @@ namespace ToDoList.Service.Implementations
                 await _taskRepository.Create(task);
 
                 _logger.LogInformation($"Задача создалась: {task.Name} {task.Created}");
-                return new BaseResponse<TaskEntity>()
-                {
-                    Description = "Задача создалась",
-                    StatusCode = StatusCode.Ok
-                };
+                await _taskRepository.Update(task);
+                return OutputProcessing<TaskEntity>("Задача создалась", StatusCode.Ok);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[TaskService.Create]: {ex.Message}");
-                return new BaseResponse<TaskEntity>
-                {
-                    Description= $"{ex.Message}",
-                    StatusCode = StatusCode.InternalServerError
-                };
+                return HandleException<TaskEntity>(ex, "TaskService.Create");
             }
         }
 
@@ -76,31 +64,40 @@ namespace ToDoList.Service.Implementations
             try
             {
                 var task = await _taskRepository.GetAll().FirstOrDefaultAsync(x => x.Id == id);
+                
                 if (task == null)
-                    return new BaseResponse<bool>()
-                    {
-                        Description = "Задача не найдена",
-                        StatusCode = StatusCode.TaskNotFoundry
-                    };
+                    return OutputProcessing<bool>("Задача не найдена", StatusCode.TaskNotFoundry);
 
                 task.IsDone = true;
 
                 await _taskRepository.Update(task);
-
-                return new BaseResponse<bool>()
-                {
-                    Description = "Задача завершена",
-                    StatusCode = StatusCode.Ok
-                };
+                return OutputProcessing<bool>("Задача завершена", StatusCode.Ok);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[TaskService.GetTasks]: {ex.Message}");
-                return new BaseResponse<bool>()
-                {
-                    Description = $"{ex.Message}",
-                    StatusCode = StatusCode.InternalServerError
-                };
+                return HandleException<bool>(ex, "TaskService.EndTask");
+            }
+        }
+
+        public async Task<IBaseResponse<IEnumerable<TaskCompletedModel>>> GetCompletedTasks()
+        {
+            try
+            {
+                var tasks = await _taskRepository.GetAll()
+                    .Where(x => x.IsDone)
+                    .Select(x => new TaskCompletedModel()
+                    {
+                        Id = x.Id,
+                        Name = x.Name,
+                        Description = x.Description
+                    })
+                    .ToListAsync();
+
+                return OutputProcessing<IEnumerable<TaskCompletedModel>>(tasks, StatusCode.Ok);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<IEnumerable<TaskCompletedModel>>(ex, "TaskService.GetCompletedTasks");
             }
         }
 
@@ -122,22 +119,61 @@ namespace ToDoList.Service.Implementations
                         Created = x.Created.ToLongDateString()
                     })
                     .ToListAsync();
-
-                return new BaseResponse<IEnumerable<TaskModel>>()
-                {
-                    Data = tasks,
-                    StatusCode = StatusCode.Ok
-                };
+                return OutputProcessing<IEnumerable<TaskModel>>(tasks, StatusCode.Ok);
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex, $"[TaskService.GetTasks]: {ex.Message}");
-                return new BaseResponse<IEnumerable<TaskModel>>()
-                {
-                    Description = $"{ex.Message}",
-                    StatusCode = StatusCode.InternalServerError
-                };
+                return HandleException<IEnumerable<TaskModel>>(ex, "TaskService.GetTasks");
             }
         }
+
+        #region Private Method
+
+        /// <summary>
+        /// To optimize and simplify re-output
+        /// </summary>
+        /// <typeparam name="TResponse">Any type parameter</typeparam>
+        /// <param name="description">Output text</param>
+        /// <param name="statusCode">StatusCode</param>
+        /// <returns>new BaseResponse<TResponse></returns>
+        private BaseResponse<TResponse> OutputProcessing<TResponse>(string description, StatusCode statusCode)
+        {
+            return new BaseResponse<TResponse>()
+            {
+                Description = $"{description}",
+                StatusCode = statusCode
+            };
+        }
+
+        /// <summary>
+        /// To optimize and simplify re-output
+        /// </summary>
+        /// <typeparam name="TResponse">Any type parameter</typeparam>
+        /// <param name="task"></param>
+        /// <param name="statusCode">StatusCode</param>
+        /// <returns>new BaseResponse<TResponse></returns>
+        private BaseResponse<TResponse> OutputProcessing<TResponse>(TResponse task, StatusCode statusCode)
+        {
+            return new BaseResponse<TResponse>()
+            {
+                Data = task,
+                StatusCode = statusCode
+            };
+        }
+
+        /// <summary>
+        /// Merges exception output
+        /// </summary>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="ex">Passed Exception</param>
+        /// <param name="getNameMethod">Method name</param>
+        /// <returns>new BaseResponse<TResponse></returns>
+        private BaseResponse<TResponse> HandleException<TResponse>(Exception ex, string nameMethod)
+        {
+            _logger.LogError(ex, $"[{nameMethod}]: {ex.Message}");
+            return OutputProcessing<TResponse>(ex.Message, StatusCode.InternalServerError);
+        }
+
+        #endregion Private Method
     }
 }
